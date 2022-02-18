@@ -1,0 +1,83 @@
+---
+title: "Stats 100 Project"
+author: "Alexander Lerner, Tomas Martinez, John Kirkpatrick"
+date: "2/15/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(car)
+library(dbplyr)
+library(ggplot2)
+library(RSQLite)
+library(DBI)
+library(readr)
+library(readxl)
+```
+
+```{r}
+setwd("/Users/tomas/Dropbox")
+combine <- read_csv("combine.csv")
+draft <- read_csv("draft.csv")
+player_bios <- read_csv("player__bios.csv")
+player_salary <- read_csv("player_salary.csv")
+
+#Player Salary data from 1990-2017
+salaries = read_excel("Player - Salaries per Year (1990 - 2017).xlsx")
+
+View(salaries)
+
+```
+
+
+```{r}
+salaries$`Salary in $`=salaries$`Salary in $`/1000000
+View(salaries)
+```
+
+
+```{r}
+hist(salaries$`Salary in $`,main="Distribution of Annual Player Salaries from 1990-2017",xlab="Salary (in millions)")
+```
+
+```{r}
+par(mfrow = c(2,1))
+salaries_2000_2015 =  subset(salaries,salaries$`Season Start` >= 2000)
+salaries_2000_2015 = subset(salaries_2000_2015,salaries_2000_2015$`Season Start` <= 2015)
+hist(salaries_2000_2015$`Salary in $`,main="Distribution of Annual Player Salaries from 2000-2015",xlab="Salary (in millions)")
+salaries_1990_2000 = subset(salaries,salaries$`Season Start` <= 2000)
+salaries_1990_2000 = subset(salaries_1990_2000,salaries_1990_2000$`Season Start` >= 1990)
+hist(salaries_1990_2000$`Salary in $`,main="Distribution of Annual Player Salaries from 1990-2000",xlab="Salary (in millions)")
+```
+As we can see, The distribution of annual player salaries has become less concentrated on lower values, as NBA salaries have increased due to several factors. First,
+inflation has increased salaries, as well as larger TV contracts and money in the NBA. We will have to tackle this issue, and we have multiple options. First, we will explore weighting player salaries based on their share of their teams' salary cap or the NBA's in general (rank normalization), or we can measure the variation from the mean salary of that given year to determine which players are valued more than their peers.
+```{r}
+ordered = salaries[order(salaries$`Season Start`),]
+View(ordered)
+salaries$variation = salaries$`Salary in $`
+####
+#years = c(1990:2017)
+#for (i in years){
+#  sum = 0
+#  counter = 0
+#  for (val in salaries$`Season Start`){
+ #    if(val == i){
+  #     sum = sum + salaries$`Salary in $`[val]
+   #    counter = counter + 1
+    # }
+  #}
+  #mean = sum/counter
+  
+ 
+  
+#}
+min_val = min(salaries$`Salary in $`)
+max_val = max(salaries$`Salary in $`)
+
+salaries$variation = (salaries$variation - min_val)/(max_val-min_val)
+#iew(salaries)
+hist(salaries$variation)
+```
+
